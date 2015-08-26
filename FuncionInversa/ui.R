@@ -10,12 +10,12 @@ library(shiny)
 shinyUI(pageWithSidebar(
   
   # Application title
-  headerPanel("Old Faithful Geyser Data"),
+  headerPanel("Funcion Inversa"),
   
   # Sidebar with a slider input for number of bins
   sidebarPanel(
     sliderInput("u",
-                "Number of u:",
+                "Number of u points:",
                 min = 1,
                 max = 3000,
                 value = 600),
@@ -28,7 +28,10 @@ shinyUI(pageWithSidebar(
   
   # Show a plot of the generated distribution
   mainPanel(
-    plotOutput("distPlot"),
-    dataTableOutput("table")
+    tabsetPanel(type = "tabs",
+                tabPanel("Grafica",plotOutput("distPlot")),
+                tabPanel("Tabla",tableOutput("table")),
+                tabPanel("Resumen",verbatimTextOutput("summary"))
+               )
   )
 ))

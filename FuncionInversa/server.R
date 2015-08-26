@@ -9,25 +9,25 @@ library(shiny)
 
 shinyServer(function(input, output) {
    
-  output$distPlot <- renderPlot({
-    
-    # generate bins based on input$bins from ui.R
-    x    <- runif(input$u,0,1)
+  data  <- reactive({
+    x    <- runif(input$u)
     lambda <- input$lambda
-    exp  <- (1/lambda)*log(1/(1-x))
-    #bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    
+    (1/lambda)*log(1/(1-x))  
+  }) 
+  
+  output$distPlot <- renderPlot({
+    # generate bins based on input$bins from ui.R
     # draw the histogram with the specified number of bins
-    hist(exp, col = 'darkgreen', border = 'white')
+    hist(data(), col = 'darkgreen', border = 'white')
     
   })
-  output$table <- renderDataTable({
-    x    <- runif(input$u,0,1)
-    lambda <- input$lambda
-    exp  <- (1/lambda)*log(1/(1-x))
-    data <- exp
-    
-    data
+  
+  output$summary <- renderPrint({
+                    summary(data())
+  })
+  
+  output$table <- renderTable({
+    data.frame(x=data())
   })
   
 })
