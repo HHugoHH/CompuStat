@@ -15,7 +15,7 @@ shinyServer(function(input, output) {
     divisiones<-input$p
     dimens <- input$nDim
     f <-function(x){
-      v <- (1/(2*pi)^(dimens/2))*exp((-1/2)*x^2)
+      v <- (1/sqrt(2*pi))*exp((-1/2)*x^2)
     }
     
     
@@ -36,24 +36,21 @@ shinyServer(function(input, output) {
       }
       i<-i+1
     }
-    monte <- function(){
-      x <- rnorm(divisiones)
-      k<-0
-      fi<-0
-      while(k<divisiones){
-        fi<-fi+f(x[k])
-      }
-      st <- (1/divisiones)*fi
-      st
+    monte <- function(d){
+      x <- runif(d,-2,2)
+      y <- runif(d,-2,2)
+      
+      res <-sum(f(x))
     }
-    print(areaTotal)
+ 
+  print(areaTotal)
      
   }) 
   
   output$distPlot <- renderPlot({
     # generate bins based on input$bins from ui.R
     # draw the histogram with the specified number of bins
-    hist(data(), col = 'darkgreen', border = 'white')
+    #hist(data(), col = 'darkgreen', border = 'white')
     
   })
   
