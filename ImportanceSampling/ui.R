@@ -16,10 +16,16 @@ shinyUI(pageWithSidebar(
   sidebarPanel(
     sliderInput("n",
                 "Number of max simulaciones:",
-                min = 10000,
-                max = 40000,
-                value = 10000,
-                step = 10000)
+                min = 100,
+                max = 20000,
+                value = 7000,
+                step = 100),
+    sliderInput("lambda",
+                "Number of lambda:",
+                min = 0,
+                max = 5,
+                value = 0.5,
+                step = 0.1)
   ),
   
   # Show a plot of the generated distribution

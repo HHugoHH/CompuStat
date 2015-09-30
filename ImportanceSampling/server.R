@@ -7,6 +7,7 @@
 
 library(shiny)
 require(plyr)
+require(ggplot2)
 shinyServer(function(input, output) {
   
   output$plots <- renderUI({
@@ -21,25 +22,31 @@ shinyServer(function(input, output) {
   })##End
   
   
-  mC.imporance <-function(N){
+  mC.imporance <-function(N,l){
     results.list <- lapply(N,function(nsim){
       #Usamos el metodo de la funcion inversa
-      nsim = 10000
-      U <- runif(nsim,0,2)
+      alpha=0.05
+      lambda =l
+      U <- runif(nsim,0,1)
+      ##Xep <- runif(nsim,0,1)
       #EXP lmbda = 1 truncada a [0,2]
-      fun <- function(x) -log(1-(1-exp(-2))*x)
+      Y <-  (-1/lambda)*log(1-U*(1-exp(-2*lambda)))
+
       
-      phi <- function(x) 2 *exp(-x)
+      phi <- function(x) 2 *exp(-2*x)
       #la densidad de la exponencial truncada
+      fun <- function(x) dexp(x)/(1-exp(-2))
       phiX <- function(x) phi(x) / fun(x)
-      estim2 <- mean(phiX(U))
-      return (data.frame(N=nsim,Estimate = estim2))
-      #S2 <- var(phiX)  #Estimar la varianza de phi(X_i)
-      #quant <- qnorm(alpha/2,lower.tail = FALSE) #cuantil derecho para alpha/2
-      #int.upper <- estim2 + sqrt(S2/nsim)*quant #intervalo de confianza de arriba
-      #int.lower <- estim2 - sqrt(S2/nsim)*quant #intervalo de confianza de abajo
-      #error <- 1-exp(-2) - estim2
-      #return (data.frame(N=nsim, LI = int.lower,Estimate = estim2,UI = int.upper,Error = error))
+        
+        
+      estim2 <- mean(phiX(Y))
+      #return (data.frame(N=nsim,Estimate = estim2))
+      S2 <- var(phiX(Y))  #Estimar la varianza de phi(X_i)
+      quant <- qnorm(alpha/2,lower.tail = FALSE) #cuantil derecho para alpha/2
+      int.upper <- estim2 + sqrt(S2/nsim)*quant #intervalo de confianza de arriba
+      int.lower <- estim2 - sqrt(S2/nsim)*quant #intervalo de confianza de abajo
+      error <- 1-exp(-2) - estim2
+      return (data.frame(N=nsim, LI = int.lower,Estimate = estim2,UI = int.upper,Error = error))
     })
     results.table = ldply(results.list)
     return (results.table)
@@ -67,26 +74,31 @@ shinyServer(function(input, output) {
   data  <- reactive({
     sim <- input$n
     sample <- function (nsim) runif(nsim,0,2)
-    N <- seq(from =1000, to= sim,by=1000)
+    N <- seq(from =100, to= sim,by=100)
     Phi <- function (x) 2* exp(-x)
     mc.intervals(Phi = Phi,N=N,sample = sample)
   }) 
   
   data2 <- reactive({
     sim <- input$n
-    M <- seq(from =1000, to= sim,by=1000)
-    mC.imporance(M)
+    l <- input$lambda
+    M <- seq(from =100, to= sim,by=100)
+    mC.imporance(M,l)
   })
   
   output$plot1 <- renderPlot({
-    #ERROR MONTERCARLO CRUDO SEGUN MAX SIMULACIONES
-    plot(data()$N,data()$Error,type = "line",xlab = "Número máximo de simulaciones", ylab="Error")
-    abline(h =0, untf = FALSE, col ="red")
+    # MONTERCARLO CRUDO SEGUN MAX SIMULACIONES
+    plot(data()$N,data()$Estimate,xlab = "Número máximo de simulaciones", ylab="estimador", main = "Montecarlo crudo")
+    abline(h =1-exp(-2), untf = FALSE, col ="red")
+    lines(data2()$N,data2()$LI,col="green")
+    lines(data2()$N,data2()$UI,col="blue")
   })
   output$plot2 <- renderPlot({
-    #ERROR MONTECARLO CON IMPORTANCE SAMPLING
-    #plot(data2()$N,data()$Error,type = "line",xlab = "Simulaciones", ylab="Error")
-    #abline(h =0, untf = FALSE, col ="red")
+    # MONTECARLO CON IMPORTANCE SAMPLING
+    plot(data2()$N,data2()$Estimate,xlab = "Simulaciones", ylab="estimador", main = "Montecarlo Importance")
+    lines(data2()$N,data2()$LI,col="green")
+    lines(data2()$N,data2()$UI,col="blue")
+    abline(h=1-exp(-2), untf = FALSE, col ="red")
   })
   
   output$table <- renderTable({
