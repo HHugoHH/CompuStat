@@ -6,60 +6,60 @@
 #
 
 library(shiny)
-
+require(plyr)
+require(ggplot2)
+library(boot)
 shinyServer(function(input, output) {
   
- 
+  
+  # Bootstrap 95% CI for regression coefficients 
+
+  # function to obtain regression weights 
+  bs <- function(formula, data, indices) {
+    d <- data[indices,] # allows boot to select sample 
+    fit <- lm(formula, data=d)
+    return(coef(fit)) 
+  } 
+  
+  output$plots <- renderUI({
+    plot_output_list <- lapply(1:3, function(i) {
+      plotname <- paste("plot", i, sep="")
+      plotOutput(plotname)
+    })
+    
+    # Convert the list to a tagList - this is necessary for the list of items
+    # to display properly.
+    do.call(tagList, plot_output_list)
+  })##End
   
   data  <- reactive({
-    divisiones<-input$p
-    dimens <- input$nDim
-    f <-function(x){
-      v <- (1/sqrt(2*pi))*exp((-1/2)*x^2)
-    }
-    
-    
-    trapecio <- function(xi,xi1){
-      b<-f(xi)
-      B<-f(xi1)
-      trap <- (B+b)*h/2
-    }
-    
-    i<-0
-    h<-4/divisiones
-    areaTotal <-0
-    while (i <dimens) {
-      j<--2
-      while(j<=2){
-        areaTotal <- areaTotal + trapecio(j,j+h)
-        j<-j+h
-      }
-      i<-i+1
-    }
-    monte <- function(d){
-      x <- runif(d,-2,2)
-      y <- runif(d,-2,2)
-      
-      res <-sum(f(x))
-    }
- 
-  print(areaTotal)
-     
+    # bootstrapping with 1000 replications 
+    results <- boot(data=mtcars, statistic=bs, 
+                    R=1000, formula=mpg~wt+disp)
+    results
   }) 
   
-  output$distPlot <- renderPlot({
-    # generate bins based on input$bins from ui.R
-    # draw the histogram with the specified number of bins
-    #hist(data(), col = 'darkgreen', border = 'white')
-    
+  output$plot1 <- renderPlot({
+      plot(data(), index=1)
   })
+  output$plot2 <- renderPlot({
+    plot(data(), index=2)
+  })
+  output$plot3 <- renderPlot({
+    plot(data(), index=3)
+  })
+  
   
   output$summary <- renderPrint({
-    summary(data())
+    boot.ci(data(), type="perc", index=1) # intercept 
   })
   
-  output$table <- renderTable({
-    data.frame(x=data())
+  output$summary2 <- renderPrint({
+    boot.ci(data(), type="perc", index=2) # wt 
+  })
+  
+  output$summary3 <- renderPrint({
+    boot.ci(data(), type="perc", index=3) # disp
   })
   
 })

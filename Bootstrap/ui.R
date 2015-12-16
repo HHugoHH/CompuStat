@@ -7,28 +7,21 @@
 
 library(shiny)
 
-shinyUI(pageWithSidebar(
+shinyUI(
   
-  # Application title
-  headerPanel("Aproximacion del calculo de integra en N dimensiones, por montecarlo y el metodo del trapecio"),
-  
-  # Sidebar with a slider input for number of bins
-  sidebarPanel(
-    #radioButtons("method","Metodo: ",c("Montecarlo"="m","Trapecio"="T")),
-    sliderInput("p",
-                "Número de Particiones:",
-                min = 1,
-                max = 1000,
-                value = 100),
-    numericInput("nDim","Dimensiones","1")
-  ),
-  
-  # Show a plot of the generated distribution
   mainPanel(
     tabsetPanel(type = "tabs",
-                tabPanel("Grafica",plotOutput("distPlot")),
-                tabPanel("Tabla",tableOutput("table")),
-                tabPanel("Resumen",verbatimTextOutput("summary"))
+                #tabPanel("Graficas",uiOutput("plots")),
+                tabPanel("Grafica intercept",plotOutput("plot1")),
+                tabPanel("Resumen intercept",verbatimTextOutput("summary")),
+                tabPanel("Grafica wt",plotOutput("plot2")),
+                tabPanel("Resumen wt",verbatimTextOutput("summary2")),
+                tabPanel("Grafica disp",plotOutput("plot3")),
+                tabPanel("Resumen disp",verbatimTextOutput("summary3"))
+                #tabPanel("Resumen",verbatimTextOutput("summary"),verbatimTextOutput("summary2"),verbatimTextOutput("summary3"))
     )
   )
-))
+  
+  
+)
+              
