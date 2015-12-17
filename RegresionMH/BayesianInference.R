@@ -84,11 +84,16 @@ cppFunction('
     double lkh, logprior;
     int m=data.nrow();
     NumericVector X(m);
+    NumericVector Y(m);
     X = data(_,0); // In this example is redundant but helps to generalise
     // Compute loglikelihood
     lkh=0;
     for (int i=0; i<m; i++){
-      lkh += -.5*pow((X[i]-theta[0])/theta[1],2)-log(theta[1]);
+      mu = 0.0;
+      for (int j=0; j<4; j++){
+            mu += theta[j]*X(i,j);
+      }
+      lkh += -.5*pow((Y[i]-mu)/theta[4],2)-log(theta[4]);
     }
     // Compute logprior
     logprior = R::dnorm(theta[0], 3.0,.5, true) +  R::dgamma(theta[1], 5.0, 1.0/40.0, true);
